@@ -28,6 +28,7 @@ const generatePolicies = (count, type_id) => {
             name: faker.commerce.productName(),
             parameter: faker.commerce.productAdjective(),
             value: JSON.stringify({ key: faker.commerce.productMaterial() }),
+            state: faker.datatype.boolean(),
         });
     }
     return policies;
@@ -61,29 +62,41 @@ const generateRoles = (count) => {
 }
 
 // Función para generar datos de usuarios
-const generateUsers = (count, groupCount, roleCount) => {
+const generateUsers = ( count, groupCount ) => {
     
     const users = [];
     for (let i = 0; i < count; i++) {
         users.push({
             username: faker.internet.userName(),
-            group_id: faker.number.bigInt({ min: 1, max: groupCount }),
-            role_id: faker.number.bigInt({ min: 1, max: roleCount }),
             date_start: faker.date.past(),
             date_end: faker.date.future(),
+            group_id: faker.number.bigInt({ min: 1, max: groupCount }),
             state: faker.datatype.boolean(),
         });
     }
     return users;
 }
 
+const generateUserRoles = (userCount, roleCount) => {
+
+    const userRoles = [];
+    for (let i = 0; i < count; i++) {
+        userRoles.push({
+            user_id: faker.number.bigInt({ min: 1, max: userCount }),
+            role_id: faker.number.bigInt({ min: 1, max: roleCount }),
+            state: faker.datatype.boolean(),
+        });
+    }
+    return userRoles;
+}
+
 // Función para generar datos de aplicaciones
-const generateApps = (count, policyCount, userCount) => {
+const generateApps = (count, policyCount, userCount, setting_id) => {
     const apps = [];
     for (let i = 0; i < count; i++) {
         apps.push({
             policy_id: faker.number.bigInt({ min: 1, max: policyCount }),
-            setting_id: faker.number.bigInt({ min: 1, max: 10 }),
+            setting_id: faker.number.bigInt({ min: 1, max: setting_id }),
             user_id: faker.number.bigInt({ min: 1, max: userCount }),
             name: faker.company.name(),
             url: faker.internet.url(),
@@ -125,10 +138,30 @@ const populateDatabase = async (req, res) => {
 
         const insertStart = performance.now(); // Medir el tiempo de inserción en la base de datos
         // TYPES
-        const type = await pool.query('INSERT INTO types (name, parameter) VALUES ($1, $2) RETURNING id', ['Policy', 'parameter']);
-        console.log('type',type);
-        console.log('typeId',type.rows[0].id);
-        
+        const type = await pool.query('INSERT INTO types (name, parameter, state) VALUES ($1, $2, $3) RETURNING id', 
+        [
+            faker.person.firstName(),
+            faker.commerce.productAdjective(),
+            faker.datatype.boolean(),
+        ]);
+        console.log('##type',type);
+        console.log('##typeId',type.rows[0].id);
+        // END TYPES
+
+        // SETTINGS
+        const setting = await pool.query('INSERT INTO settings (user_pool, identity_pool,app_client, value, state) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+        [
+            faker.string.alphanumeric(),
+            faker.string.hexadecimal(),
+            faker.string.alphanumeric(),
+            JSON.stringify({ key: faker.commerce.productMaterial() }),
+            faker.datatype.boolean(),
+        ]
+        );
+        console.log('##setting',setting);
+        console.log('##settingId',setting.rows[0].id);
+        // END SETTINGS
+
         // POLICIES
         //Insertar datos de políticas
         const policies = generatePolicies(policyCount, type.rows[0].id);
@@ -137,8 +170,8 @@ const populateDatabase = async (req, res) => {
         for (const policy of policies) {
             try {
                 const result = await pool.query(
-                    'INSERT INTO policies (type_id, name, parameter, value) VALUES ($1, $2, $3, $4) RETURNING id', 
-                    [policy.type_id, policy.name, policy.parameter, policy.value]
+                    'INSERT INTO policies (type_id, name, parameter, value, state) VALUES ($1, $2, $3, $4, $5) RETURNING id', 
+                    [policy.type_id, policy.name, policy.parameter, policy.value, policy.state]
                 );
                 console.log('####result', result);
                 console.log('####rows', result.rows);
@@ -193,17 +226,29 @@ const populateDatabase = async (req, res) => {
         // END ROLES
         // USERS
         // Insertar datos de usuarios
-        const users = generateUsers(userCount, groupCount, roleCount);
+        const users = generateUsers(userCount, groupCount);
+        const roleUsers = generateUserRoles(roleCount, userCount);
+
         const insertedUsersIds = [];
+        const insertedUserRolesIds = [];
         for (const user of users) {
             try {
-                const result = await pool.query(
-                    'INSERT INTO users (username, group_id, role_id, date_start, date_end, state) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-                    [user.username, user.group_id, user.role_id, user.date_start, user.date_end, user.state]
+                const resultUser = await pool.query(
+                    'INSERT INTO users (username, date_start, date_end, group_id, state) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+                    [user.username, user.date_start, user.date_end, user.group_id ,user.state]
                 );
-                console.log('####result', result);
-                console.log('####rows', result.rows);
-                insertedUsersIds.push(result.rows[0].id);
+                console.log('####resultUser', resultUser);
+                console.log('####rowsUser', resultUser.rows);
+                insertedUsersIds.push(resultUser.rows[0].id);
+
+                const resultUserRole= await pool.query(
+                    'INSERT INTO user_role (user_id, role_id, state) VALUES ($1, $2, $3) RETURNING id',
+                    [roleUsers.user_id, roleUsers.role_id, roleUsers.state]
+                );
+                console.log('####resultUserRole', resultUserRole);
+                console.log('####rowsUserRole', resultUserRole.rows);
+                insertedUserRolesIds.push(resultUserRole.rows[0].id);
+                
             } catch (err) {
                 console.log('##err', err);
                 throw err;
@@ -213,7 +258,7 @@ const populateDatabase = async (req, res) => {
         // END USERS
         // APPS
         // Insertar datos de aplicaciones
-        const apps = generateApps(appCount, policyCount, userCount);
+        const apps = generateApps(appCount, policyCount, userCount, setting.rows[0].id);
         const insertedAppsIds = [];
         for (const app of apps) {
             try {

@@ -9,7 +9,8 @@ CREATE DATABASE test_brk;
 CREATE TABLE types(
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(40),
-    parameter VARCHAR(40) NULL 
+    parameter VARCHAR(40) NULL,
+    state boolean default true 
 );
 
 CREATE TABLE policies(
@@ -17,7 +18,8 @@ CREATE TABLE policies(
     type_id BIGINT,
     name VARCHAR(40),
     parameter VARCHAR(40) NULL,
-    value JSONB NULL 
+    value JSONB NULL,
+    state boolean default true 
 );
 
 CREATE TABLE groups(
