@@ -32,8 +32,8 @@ CREATE TABLE groups(
 CREATE TABLE roles(
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(40),
-    parent BIGINT,
-    child BIGINT,
+    parent BIGINT NULL,
+    child BIGINT NULL,
     state boolean default true 
 );
 
@@ -58,7 +58,7 @@ CREATE TABLE settings(
 CREATE TABLE apps(
     id BIGSERIAL PRIMARY KEY,
     setting_id BIGINT,
-    user_id BIGINT,
+    user_id BIGINT NULL,
     name VARCHAR(40),
     url TEXT,
     owner VARCHAR(40),
@@ -68,8 +68,8 @@ CREATE TABLE apps(
 CREATE TABLE permissions(
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(40),
-    parent BIGINT,
-    child BIGINT,
+    parent BIGINT NULL,
+    child BIGINT NULL,
     state boolean default true 
 );
 
@@ -89,10 +89,10 @@ CREATE TABLE user_role(
     state boolean default true 
 );
 
-CREATE TABLE permission_role(
+CREATE TABLE role_permission(
     id BIGSERIAL PRIMARY KEY,
-    permission_id BIGINT,
     role_id BIGINT,
+    permission_id BIGINT,
     state boolean default true 
 );
 
@@ -100,6 +100,13 @@ CREATE TABLE app_policie(
     id BIGSERIAL PRIMARY KEY,
     app_id BIGINT,
     policy_id BIGINT,
+    state boolean default true 
+);
+
+CREATE TABLE app_user(
+    id BIGSERIAL PRIMARY KEY,
+    app_id BIGINT,
+    user_id BIGINT,
     state boolean default true 
 );
 
@@ -126,6 +133,9 @@ ADD CONSTRAINT policies_type_id_fkey FOREIGN KEY (type_id) REFERENCES types(id);
 ALTER TABLE users
 ADD CONSTRAINT users_group_id_fkey FOREIGN KEY (group_id) REFERENCES groups(id);
 
+ALTER TABLE devices
+ADD CONSTRAINT devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
+
 ALTER TABLE apps
 ADD CONSTRAINT apps_setting_id_fkey FOREIGN KEY (setting_id) REFERENCES settings(id),
 ADD CONSTRAINT apps_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
@@ -135,9 +145,9 @@ ADD CONSTRAINT user_role_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id)
 ADD CONSTRAINT user_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES roles(id);
 
 
-ALTER TABLE permission_role
-ADD CONSTRAINT permission_role_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES permissions(id),
-ADD CONSTRAINT permission_role_role_id_fkey FOREIGN KEY (role_id) REFERENCES roles(id);
+ALTER TABLE role_permission
+ADD CONSTRAINT role_permission_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES permissions(id),
+ADD CONSTRAINT role_permission_role_id_fkey FOREIGN KEY (role_id) REFERENCES roles(id);
 
 ALTER TABLE app_policie
 ADD CONSTRAINT app_policie_app_id_fkey FOREIGN KEY (app_id) REFERENCES apps(id),
@@ -150,3 +160,7 @@ ADD CONSTRAINT group_policie_policy_id_fkey FOREIGN KEY (policy_id) REFERENCES p
 ALTER TABLE role_group
 ADD CONSTRAINT role_group_role_id_fkey FOREIGN KEY (role_id) REFERENCES roles(id),
 ADD CONSTRAINT role_group_group_id_fkey FOREIGN KEY (group_id) REFERENCES groups(id);
+
+ALTER TABLE app_user
+ADD CONSTRAINT app_user_app_id_fkey FOREIGN KEY (app_id) REFERENCES apps(id),
+ADD CONSTRAINT app_user_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
