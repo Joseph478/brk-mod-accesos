@@ -8,7 +8,7 @@ CREATE DATABASE test_brk2;
 
 CREATE TABLE types(
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(40),
+    name VARCHAR(50),
     parameter VARCHAR(40) NULL,
     state boolean default true 
 );
@@ -16,7 +16,7 @@ CREATE TABLE types(
 CREATE TABLE policies(
     id BIGSERIAL PRIMARY KEY,
     type_id BIGINT,
-    name VARCHAR(40),
+    name VARCHAR(50),
     parameter VARCHAR(40) NULL,
     value JSONB NULL,
     state boolean default true 
@@ -24,28 +24,28 @@ CREATE TABLE policies(
 
 CREATE TABLE groups(
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(40),
+    name VARCHAR(50),
     type VARCHAR(40),
     state boolean default true 
 );
 
 CREATE TABLE roles(
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(40),
+    name VARCHAR(50),
     state boolean default true 
 );
 
 CREATE TABLE sub_roles(
     id BIGSERIAL PRIMARY KEY,
     role_id BIGINT,
-    name VARCHAR(50),
+    name VARCHAR(60),
     state boolean default true 
 );
 
 CREATE TABLE users(
     id BIGSERIAL PRIMARY KEY,
     group_id BIGINT,
-    username VARCHAR(40),
+    username VARCHAR(50),
     date_start TIMESTAMP NULL,
     date_end TIMESTAMP NULL,
     state boolean default true 
@@ -64,7 +64,7 @@ CREATE TABLE apps(
     id BIGSERIAL PRIMARY KEY,
     setting_id BIGINT,
     user_id BIGINT NULL,
-    name VARCHAR(40),
+    name VARCHAR(50),
     url TEXT,
     owner VARCHAR(40),
     state boolean default true 
@@ -72,21 +72,21 @@ CREATE TABLE apps(
 
 CREATE TABLE permissions(
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(40),
+    name VARCHAR(50),
     state boolean default true 
 );
 
 CREATE TABLE sub_permissions(
     id BIGSERIAL PRIMARY KEY,
     permission_id BIGINT NULL,
-    name VARCHAR(40),
+    name VARCHAR(60),
     state boolean default true 
 );
 
 CREATE TABLE devices(
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT,
-    name VARCHAR(40),
+    name VARCHAR(50),
     description TEXT,
     store TEXT,
     state boolean default true 

@@ -1,7 +1,6 @@
 const { generateRoles, generateRolesV2, subGenerateRolesV2, generateGroups, generatePermissions, generatePermissionsV2, subGeneratePermissionsV2, generateRoleGroups, generateRolePermissions } = require('../utils/common');
 
-const roleSupport = async (pool, roleCount) => {
-    const roles = generateRoles(roleCount);
+const roleSupport = async (pool, roles) => {
     const insertedRolesIds = [];
     for (const role of roles) {
         try {
@@ -107,8 +106,7 @@ const roleGroupSupport = async (pool, roleGroups) => {
     console.log('##insertedRoleGroupsIds', insertedRoleGroupsIds);
     return insertedRoleGroupsIds;
 }
-const permissionSupport = async (pool, permissionCount) => {
-    const permissions = generatePermissions(permissionCount);
+const permissionSupport = async (pool, permissions) => {
     const insertedPermissionsIds = [];
     for (const permission of permissions) {
         try {

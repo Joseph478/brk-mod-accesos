@@ -176,7 +176,7 @@ const subGeneratePermissionsV2 = (count, permissionCount) => {
     const subPermissions = [];
     for (let i = 0; i < count; i++) {
         subPermissions.push({
-            name: 'ss',
+            name: faker.person.jobTitle(),
             permission_id: faker.number.int({ min: 1, max: permissionCount }),
             state: faker.datatype.boolean(),
         });

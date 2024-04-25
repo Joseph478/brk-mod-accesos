@@ -4,14 +4,13 @@ const { Pool } = require('pg');
 const { typeSupport, settingSupport, policieSupport } = require('../services/settings.support');
 const { roleSupport, groupSupport, roleGroupSupport, permissionSupport, rolePermissionsSupport } = require('../services/role.support');
 const { appSupport, appPolicieSupport, userRolesSupport, userSupport, deviceSupport } = require('../services/user.support')
-const { generateApps, generateGroups, generatePermissions, generatePolicies, generateRoleGroups, generateRoles, generateUserRoles} = require('../utils/common');
-
+const { generateApps, generateGroups, generateUsers, generateDevices, generateRolePermissions, generateAppPolicies, generatePermissions, generatePermissionsV2, generatePolicies, generateRolesV2, subGenerateRolesV2, generateRoleGroups, generateRoles, generateUserRoles, subGeneratePermissionsV2} = require('../utils/common');
 const pool = new Pool({
     host: 'localhost',
-    port: 5433,
+    port: 5432,
     database: 'test_brk',
     user: 'postgres',
-    password: 'laravel20'
+    password: 'Myanabeth0'
 });
 
 const getUsers = (req, res) => {
@@ -25,21 +24,17 @@ const getUsers = (req, res) => {
 
 const populateDatabase = async (req, res) => {
     try {
+        const start = performance.now(); // Medir el tiempo total de ejecución
         // await client.connect();
         // Generar y insertar datos
-        const policyCount = 10;
-        const groupCount = 20;
-        const roleCount = 30;
-        const userCount = 50;
-        const appCount = 10;
-        const permissionCount = 35;
-        const deviceCount = 10;
+        const policyCount = 1000;
+        const groupCount = 1000;
+        const roleCount = 1000;
+        const userCount = 1000;
+        const appCount = 1000;
+        const permissionCount = 1000;
+        const deviceCount = 1000;
 
-        const start = performance.now(); // Medir el tiempo total de ejecución
-
-        const generateDataTime = performance.now() - start; // Tiempo de generación de datos
-
-        const insertStart = performance.now(); // Medir el tiempo de inserción en la base de datos
         // TYPES
         const typeId = await typeSupport(pool);
         // END TYPES
@@ -47,39 +42,57 @@ const populateDatabase = async (req, res) => {
         // SETTINGS
         const settingId = await settingSupport(pool)
         // END SETTINGS
+        // START FAKE DATA
+        const generateDataTime = performance.now() - start; // Tiempo de generación de datos
+
+        const policiesGenerated = generatePolicies(policyCount, typeId);
+        const rolesGenerated = generateRoles(roleCount);
+        const groupsGenerated = generateGroups(groupCount);
+        const roleGroupsGenerated = generateRoleGroups(roleCount, groupCount);
+        const usersGenerated = generateUsers(userCount, groupCount);
+        const roleUsersGenerated = generateUserRoles(userCount, roleCount);
+        const appsGenerated = generateApps(appCount, userCount, settingId);
+        const appPoliciesGenerated = generateAppPolicies(appCount, policyCount);
+        const devicesGenerated = generateDevices(deviceCount, userCount);
+        const permissionsGenerated = generatePermissions(permissionCount);
+        const rolePermissionsGenerated = generateRolePermissions(roleCount, permissionCount);
+
+        const insertStart = performance.now(); // Medir el tiempo de inserción en la base de datos
+        // END FAKE DATA
+        
 
         // POLICIES
         //Insertar datos de políticas
-        const policies = await policieSupport(pool, policyCount, typeId);
+        const policies = await policieSupport(pool, policiesGenerated);
         // END POLICIES
         // ROLES
         // Insertar datos de roles
-        const roles = await roleSupport(pool, roleCount);
+        const roles = await roleSupport(pool, rolesGenerated);
         // END ROLES
         // GRUPOS
         // Insertar datos de grupos
-        const groups = await groupSupport(pool, groupCount);
-        const roleGroups = await roleGroupSupport(pool, roleCount, groupCount);
+        const groups = await groupSupport(pool, groupsGenerated);
+        const roleGroups = await roleGroupSupport(pool, roleGroupsGenerated);
         // END GRUPOS
         // USERS
         // Insertar datos de usuarios
-        const users = await userSupport(pool, userCount, groupCount);
-        const roleUser = await userRolesSupport(pool, userCount, roleCount);
+        const users = await userSupport(pool, usersGenerated);
+        const roleUser = await userRolesSupport(pool, roleUsersGenerated);
         // END USERS
         // APPS
         // Insertar datos de aplicaciones
-        const apps = await appSupport(pool, appCount, policyCount, userCount, settingId);
-        const appPolicies = await appPolicieSupport(pool, appCount, policyCount);
+        const apps = await appSupport(pool, appsGenerated);
+        const appPolicies = await appPolicieSupport(pool, appPoliciesGenerated);
         // END APPS
         // DEVICES
         // Insertar datos de dispositivos
-        const devices = deviceSupport(pool, deviceCount, userCount);
+        const devices = deviceSupport(pool, devicesGenerated);
         // END DEVICES
         
         // PERMISSIONS
         // Insertar datos de permisos
-        const permissions = await permissionSupport(pool, permissionCount);
-        const permissionRoles = await rolePermissionsSupport(pool, roleCount, permissionCount);
+        const permissions = await permissionSupport(pool, permissionsGenerated);
+        const permissionRoles = await rolePermissionsSupport(pool, rolePermissionsGenerated);
         // END PERMISSIONS
 
         const insertTime = performance.now() - insertStart; // Tiempo de inserción en la base de datos

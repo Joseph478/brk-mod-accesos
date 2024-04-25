@@ -8,10 +8,10 @@ const { generateApps, generateGroups, generateUsers, generateDevices, generateRo
 
 const pool = new Pool({
     host: 'localhost',
-    port: 5433,
+    port: 5432,
     database: 'test_brk2',
     user: 'postgres',
-    password: 'laravel20'
+    password: 'Myanabeth0'
 });
 
 const getUsers2 = (req, res) => {
@@ -28,15 +28,15 @@ const populateDatabase2 = async (req, res) => {
         const start = performance.now(); // Medir el tiempo total de ejecución
         // await client.connect();
         // Generar y insertar datos
-        const policyCount = 10;
-        const groupCount = 20;
-        const roleCount = 30;
-        const subRoleCount = 30;
-        const userCount = 50;
-        const appCount = 10;
-        const permissionCount = 35;
-        const subPermissionCount = 35;
-        const deviceCount = 10;
+        const policyCount = 1000;
+        const groupCount = 1000;
+        const roleCount = 1000;
+        const subRoleCount = 1000;
+        const userCount = 1000;
+        const appCount = 1000;
+        const permissionCount = 1000;
+        const subPermissionCount = 1000;
+        const deviceCount = 1000;
 
         // TYPES
         const typeId = await typeSupport(pool);
