@@ -1,0 +1,14 @@
+model Product {
+  id Int @id @default(autoincrement())
+  name String @unique
+  price Int @default(999)
+  createdAt DateTime @default(now())
+  category Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  stock Int @default(0)
+}
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  products Product[]
+}
